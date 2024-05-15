@@ -6,7 +6,7 @@ export const createContactSchema = Joi.object({
     minDomainSegments: 2,
     tlds: { allow: ["com", "net", "ua"] },
   }),
-  phone: Joi.string().length(10).required(),
+  phone: Joi.string().pattern(/^\d{3}-\d{3}-\d{2}-\d{2}$/).required(),
 });
 
 export const updateContactSchema = Joi.object({
@@ -15,5 +15,6 @@ export const updateContactSchema = Joi.object({
     minDomainSegments: 2,
     tlds: { allow: ["com", "net", "ua"] },
   }),
-  phone: Joi.string().length(10).required(),
-}).min(1);
+  phone: Joi.string().
+  pattern(/^\d{3}-\d{3}-\d{2}-\d{2}$/).required(),
+});

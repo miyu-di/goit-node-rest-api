@@ -36,7 +36,6 @@ async function addContact(name, email, phone) {
   const newContact = { id: crypto.randomUUID(), name, email, phone };
 
   contacts.push(newContact);
-
   fs.writeFile(contactsPath, JSON.stringify(contacts));
   return newContact;
 }
@@ -46,6 +45,9 @@ async function updateContact(id, newContact) {
   
   const contactIndex = contacts.findIndex((contact) => contact.id === id);
 
+  if (contactIndex === -1) {
+    return null;
+  }
   contacts[contactIndex] = { ...contacts[contactIndex], ...newContact };
   fs.writeFile(contactsPath, JSON.stringify(contacts));
   return contacts[contactIndex];
