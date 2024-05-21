@@ -1,56 +1,24 @@
-import * as fs from "node:fs/promises";
-import path from "path";
-import crypto from "node:crypto";
+import Contact from "../models/contact.js";
 
-const contactsPath = path.resolve("db", "contacts.json");
-
-async function listContacts() {
-  const contacts = await fs.readFile(contactsPath, { encoding: "utf-8" });
-  return JSON.parse(contacts);
+function listContacts() {
+  const contacts = Contact.find();
+  return contacts;
 }
 
-async function getContactById(id) {
-  const contacts = await listContacts();
-
-  const getContact = contacts.find((contact) => contact.id === id);
-
-  return getContact ? getContact : null;
+function getContactById(id) {
+  return Contact.findOne({ _id: id });
 }
 
-async function removeContact(id) {
-  const contacts = await listContacts();
-
-  const contactToRemove = contacts.find((contact) => contact.id === id);
-  if (contactToRemove !== undefined) {
-    const newContacts = contacts.filter((contact) => contact.id !== id);
-    fs.writeFile(contactsPath, JSON.stringify(newContacts));
-    return contactToRemove;
-  } else {
-    return null;
-  }
+function removeContact(id) {
+  return Contact.findByIdAndDelete({ _id: id });
 }
 
-async function addContact(name, email, phone) {
-  const contacts = await listContacts();
-
-  const newContact = { id: crypto.randomUUID(), name, email, phone };
-
-  contacts.push(newContact);
-  fs.writeFile(contactsPath, JSON.stringify(contacts));
-  return newContact;
+function addContact({name, email, phone}) {
+  return Contact.create({ name, email, phone });
 }
 
-async function updateContact(id, newContact) {
-  const contacts = await listContacts();
-  
-  const contactIndex = contacts.findIndex((contact) => contact.id === id);
-
-  if (contactIndex === -1) {
-    return null;
-  }
-  contacts[contactIndex] = { ...contacts[contactIndex], ...newContact };
-  fs.writeFile(contactsPath, JSON.stringify(contacts));
-  return contacts[contactIndex];
+function updateContact(id, fields) {
+  return Contact.findByIdAndUpdate({ _id: id }, fields, { new: true });
 }
 
 export default {
