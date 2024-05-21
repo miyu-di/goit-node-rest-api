@@ -74,7 +74,6 @@ export const updateContact = async (req, res, next) => {
 };
 
 export const updateStatusContact = async (req, res, next) => {
-
   try {
     const { id } = req.params;
     const { favorite } = req.body;
@@ -84,7 +83,10 @@ export const updateStatusContact = async (req, res, next) => {
       {favorite}
     );
 
-    res.json(updatedStatusContact).status(200);
+    if (!updatedStatusContact) {
+      throw HttpError(404);
+    }
+      res.json(updatedStatusContact).status(200);
   } catch (error) {
     next(error)
   }
