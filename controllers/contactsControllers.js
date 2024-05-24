@@ -1,9 +1,9 @@
 import contactsServices from "../services/contactsServices.js";
 import HttpError from "../helpers/HttpError.js";
 
-export const getAllContacts = async (_, res, next) => {
+export const getAllContacts = async (req, res, next) => {
   try {
-    const contacts = await contactsServices.listContacts();
+    const contacts = await contactsServices.listContacts(req.user.id);
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
@@ -13,7 +13,7 @@ export const getAllContacts = async (_, res, next) => {
 export const getOneContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const contact = await contactsServices.getContactById(id);
+    const contact = await contactsServices.getContactById(id, req.user.id);
 
     if (!contact) {
       throw HttpError(404);
@@ -27,7 +27,7 @@ export const getOneContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const contact = await contactsServices.removeContact(id);
+    const contact = await contactsServices.removeContact(id, req.user.id);
 
     if (!contact) {
       throw HttpError(404);
@@ -44,6 +44,7 @@ export const createContact = async (req, res, next) => {
       name: req.body.name,
       email: req.body.email,
       phone: req.body.phone,
+      owner: req.user.id,
     };
 
     const createdContact = await contactsServices.addContact(contact);
@@ -61,9 +62,12 @@ export const updateContact = async (req, res, next) => {
       name: req.body.name,
       email: req.body.email,
       phone: req.body.phone,
-    }
+    };
 
-    const updatedContact = await contactsServices.updateContact(id, contact);
+    const updatedContact = await contactsServices.updateContact(
+      id,
+      req.user.id, contact
+    );
 
     if (!updateContact) {
       throw HttpError(404);
@@ -80,8 +84,7 @@ export const updateStatusContact = async (req, res, next) => {
     const { favorite } = req.body;
     
     const updatedStatusContact = await contactsServices.updateContact(
-      id,
-      {favorite}
+      id, req.user.id, {favorite}
     );
 
     if (!updatedStatusContact) {
