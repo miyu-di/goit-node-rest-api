@@ -8,29 +8,25 @@ export const register = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        const emailInLowerCase = email.toLowerCase();
-
         const user = await usersServices.getUserByEmail({
-          email: emailInLowerCase,
+          email: email,
         });
-        if (user !== null) {
+        if (!user) {
             throw HttpError(409, "Email in use");
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
 
         const createdUser = await usersServices.createUser({
-          email: emailInLowerCase,
+          email: email,
           password: passwordHash,
         });
-        res
-          .send({
-            user: {
-              email: createdUser.email,
-              subscription: createdUser.subscription,
-            },
-          })
-          .status(201);
+        res.status(201).json({
+          user: {
+            email: createdUser.email,
+            subscription: createdUser.subscription,
+          },
+        });
     } catch (error) {
         next(error);
     }
@@ -39,10 +35,9 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
  try {
      const { email, password } = req.body;
-     const emailInLowerCase = email.toLowerCase();
 
      const user = await usersServices.getUserByEmail({
-       email: emailInLowerCase,
+       email: email,
      });
 
      if (user === null) {
@@ -58,7 +53,7 @@ export const login = async (req, res, next) => {
      const token = jwt.sign(
        {
          id: user._id,
-         name: user.name,
+         email: user.email,
        },
        process.env.SECRET,
        {
@@ -68,12 +63,13 @@ export const login = async (req, res, next) => {
 
      await usersServices.updateUser(user._id, { token });
 
-     res.send({
-         token: token,
-         user: {
-             email: user.email,
-             subscription: user.subscription,
-     }}).status(200)
+   res.status(200).json({
+     token: token,
+     user: {
+       email: user.email,
+       subscription: user.subscription,
+     },
+   });
  } catch (error) {
     next(error)
  }
@@ -90,11 +86,10 @@ export const logout = async (req, res, next) => {
 
 export const currentUser = async (req, res, next) => {
   try {
-      const user = await usersServices.getUserById(req.user.id);
-      res.json({
+      res.status(200).json({
         email: user.email,
         subscription: user.subscription,
-      }).status(200);
+      });
   } catch (error) {
     next(error);
   }

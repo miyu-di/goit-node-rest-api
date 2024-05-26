@@ -8,10 +8,10 @@ export const registerSchemas = Joi.object({
     })
     .required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")).required(),
+  subscription: Joi.string(),
 });
 
 export const loginSchemas = Joi.object({
-  name: Joi.string(),
   email: Joi.string()
     .email({
       minDomainSegments: 2,
