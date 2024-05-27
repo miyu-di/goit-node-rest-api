@@ -32,6 +32,8 @@ export const tokenValidation = async (req, res, next) => {
 
       req.user = {
         id: user._id,
+        password: user.password,
+        email: user.email,
         subscription: user.subscription,
       };
       next();

@@ -84,12 +84,12 @@ export const logout = async (req, res, next) => {
     }
 }
 
-export const currentUser = async (req, res, next) => {
+export const currentUser = (req, res, next) => {
   try {
-    const user = await usersServices.getUserById(req.user.id);
+    const {email, subscription} = req.user;
       res.status(200).json({
-        email: user.email,
-        subscription: user.subscription,
+        email: email,
+        subscription: subscription,
       });
   } catch (error) {
     next(error);
