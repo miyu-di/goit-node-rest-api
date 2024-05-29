@@ -6,7 +6,7 @@ export const tokenValidation = async (req, res, next) => {
   try {
     const authorizationHeader = req.headers.authorization;
 
-    if (authorizationHeader === "undefined") {
+    if (!authorizationHeader) {
       throw HttpError(401, "Not authorized");
     }
 
@@ -35,6 +35,7 @@ export const tokenValidation = async (req, res, next) => {
         password: user.password,
         email: user.email,
         subscription: user.subscription,
+        avatar: user.avatarURL,
       };
       next();
     });
