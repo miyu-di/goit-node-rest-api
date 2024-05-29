@@ -5,6 +5,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import Jimp from "jimp";
 
 export const register = async (req, res, next) => {
   try {
@@ -60,7 +61,7 @@ export const login = async (req, res, next) => {
 
     const token = jwt.sign(
       {
-        id: user._id,
+        id: user.id,
         email: user.email,
       },
       process.env.SECRET,
@@ -69,7 +70,7 @@ export const login = async (req, res, next) => {
       }
     );
 
-    await usersServices.updateUser(user._id, { token });
+    await usersServices.updateUser(user.id, { token });
 
     res.status(200).json({
       token: token,
@@ -106,16 +107,19 @@ export const currentUser = (req, res, next) => {
 
 export const uploadAvatar = async (req, res, next) => {
   try {
+    const picture = await Jimp.read(req.file.path);
+    picture.resize(250, 250).write(path.resolve(req.file.path));
+
     await fs.rename(
       req.file.path,
       path.resolve("public/avatars", req.file.filename)
     );
 
     const user = await usersServices.updateUser(req.user.id, {
-      avatar: req.file.filename,
+      avatarURL: req.file.filename,
     });
 
-    res.status(200).send({ avatarURL: user.avatar });
+    res.status(200).send({ avatarURL: user.avatarURL });
   } catch (error) {
     next(error);
   }

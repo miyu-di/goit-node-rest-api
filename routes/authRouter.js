@@ -15,6 +15,10 @@ userRouter.post("/logout", tokenValidation, logout);
 
 userRouter.get("/current", tokenValidation, currentUser);
 
-userRouter.patch("/avatars", uploadMiddleware.single("avatar"), uploadAvatar)
+userRouter.patch(
+  "/avatars",
+  tokenValidation, uploadMiddleware.single("avatar"),
+  uploadAvatar
+);
 
 export default userRouter
