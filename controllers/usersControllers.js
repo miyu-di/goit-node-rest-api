@@ -6,6 +6,8 @@ import path from "node:path";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Jimp from "jimp";
+import mail from "../mail.js";
+import crypto from "node:crypto";
 
 export const register = async (req, res, next) => {
   try {
@@ -19,6 +21,7 @@ export const register = async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomUUID();
 
     const avatarURL = gravatar.url(email, {
       protocol: "http",
@@ -29,13 +32,74 @@ export const register = async (req, res, next) => {
       email: email,
       password: passwordHash,
       avatarURL,
+      verificationToken,
     });
+
+    mail.sendMail({
+      to: createdUser.email,
+      from: "dianka211205@gmail.com",
+      subject: "Welcome to Contacbook!",
+      html: `To confirm your email, please, click on the <a href="http://localhost:5500/users/verify/${verificationToken}">link</a>`,
+      text: `To confirm your email, please, open the link http://localhost:5500/users/verify/${verificationToken}`,
+    });
+
     res.status(201).json({
       user: {
         email: createdUser.email,
         subscription: createdUser.subscription,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verify = async (req, res, next) => {
+  try {
+    const user = await usersServices.getOneUser({
+      verificationToken: req.params.verificationToken,
+    });
+
+    if (user === null) {
+      throw HttpError(404, "User not found");
+    }
+
+    await usersServices.updateUser(user.id, {
+      verify: true,
+      verificationToken: null,
+    });
+
+    res.status(200).send("Verification successful");
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerify = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      throw HttpError(400, "Missing required field email");
+    }
+
+    const user = await usersServices.getUserByEmail({ email: email });
+
+    if (user.verify) {
+      throw HttpError(400, "Verification has already been passed");
+    }
+
+    const verificationToken = user.verificationToken;
+
+    mail.sendMail({
+      to: user.email,
+      from: "dianka211205@gmail.com",
+      subject: "Welcome to Contacbook!",
+      html: `To confirm your email, please, click on the <a href="http://localhost:5500/users/verify/${verificationToken}">link</a>`,
+      text: `To confirm your email, please, open the link http://localhost:5500/users/verify/${verificationToken}`,
+    });
+
+    res.status(200).send("Verification email sent");
   } catch (error) {
     next(error);
   }

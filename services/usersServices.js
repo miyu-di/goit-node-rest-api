@@ -8,8 +8,12 @@ function getUserByEmail(email) {
   return User.findOne(email);
 }
 
-function createUser({ email, password }) {
-    return User.create({ email, password });
+function getOneUser(filter) {
+  return User.findOne(filter)
+}
+
+function createUser({ email, password, verificationToken }) {
+  return User.create({ email, password, verificationToken });
 }
 
 function updateUser(id, fields) {
@@ -21,4 +25,5 @@ export default {
   getUserByEmail,
   createUser,
   updateUser,
+  getOneUser,
 };
