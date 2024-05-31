@@ -6,8 +6,8 @@ import path from "node:path";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Jimp from "jimp";
-import mail from "../mail.js";
 import crypto from "node:crypto";
+import sendMail from "../headers/mail.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -35,7 +35,7 @@ export const register = async (req, res, next) => {
       verificationToken,
     });
 
-    mail.sendMail({
+    await sendMail({
       to: createdUser.email,
       from: "dianka211205@gmail.com",
       subject: "Welcome to Contacbook!",
@@ -60,7 +60,7 @@ export const verify = async (req, res, next) => {
       verificationToken: req.params.verificationToken,
     });
 
-    if (user === null) {
+    if (!user) {
       throw HttpError(404, "User not found");
     }
 
@@ -78,10 +78,6 @@ export const verify = async (req, res, next) => {
 export const resendVerify = async (req, res, next) => {
   try {
     const { email } = req.body;
-
-    if (!email) {
-      throw HttpError(400, "Missing required field email");
-    }
 
     const user = await usersServices.getUserByEmail({ email: email });
 
@@ -113,7 +109,11 @@ export const login = async (req, res, next) => {
       email: email,
     });
 
-    if (user === null) {
+    if (!user.verify) {
+      throw HttpError(400, "User hasn't passed verification yet");
+    }
+
+    if (!user) {
       throw HttpError(401, "Email or password is wrong");
     }
 
