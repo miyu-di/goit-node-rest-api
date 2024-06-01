@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Jimp from "jimp";
 import crypto from "node:crypto";
-import sendMail from "../headers/mail.js";
+import sendMail from "../helpers/mail.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -81,13 +81,13 @@ export const resendVerify = async (req, res, next) => {
 
     const user = await usersServices.getUserByEmail({ email: email });
 
-    if (user.verify) {
+    if (user?.verify) {
       throw HttpError(400, "Verification has already been passed");
     }
 
     const verificationToken = user.verificationToken;
 
-    mail.sendMail({
+    await sendMail({
       to: user.email,
       from: "dianka211205@gmail.com",
       subject: "Welcome to Contacbook!",
@@ -119,7 +119,7 @@ export const login = async (req, res, next) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
 
-    if (isMatch === false) {
+    if (!isMatch) {
       throw HttpError(401, "Email or password is wrong");
     }
 
